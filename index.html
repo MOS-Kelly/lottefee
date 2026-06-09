@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>롯데 집하 수수료 계산기</title>
+    <style>
+        /* [CSS 스타일] */
+        .calculator-box {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            font-family: sans-serif;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        #calc_btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .divider {
+            border-top: 1px solid #eee;
+            margin: 20px 0;
+        }
+        .result-box {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background-color: #f9fafb;
+        }
+        .total {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .total-price {
+            color: #e11d48;
+            font-size: 20px;
+        }
+        .notice-box {
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #4b5563;
+            line-height: 1.5;
+            text-align: center;
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-box">
+        <!-- 타입과 급지 선택창을 삭제하고 운임 입력란만 남겼습니다 -->
+        <div class="input-group">
+            <label for="calc_fare">운임 입력 (원)</label>
+            <input type="number" id="calc_fare" placeholder="예: 3000">
+        </div>
+
+        <button id="calc_btn">계산하기</button>
+
+        <div class="divider"></div>
+
+        <div class="result-box">
+            <div style="display: none;"><span id="out_rate">0</span></div>
+            
+            <div class="result-row total">
+                <span>최종 수수료</span>
+                <span class="total-price"><span id="out_result">0</span> 원</span>
+            </div>
+        </div>
+
+        <div class="notice-box">
+            <p>💡 기타, 도서산간 등 기본운임에 추가 발생한 금액은 한진 측에 전액 귀속되는 금액으로 수수료에 반영되지 않으며, 일반적으로 <strong>총운임 - 사회적합의비용</strong> 기준으로 수수료 발생하여 정산됩니다.</p>
+            <p>💡 발생하는 변수에 따라서 일부 수수료는 계산한것과 다르게 책정될 수 있습니다. 집하 영업 시 평균 단가 참고하는 용도로만 사용 부탁드리겠습니다.</p>
+        </div>
+    </div>
+
+    <script>
+        // [자바스크립트 로직]
+        function find_rate(baseFare) {
+            // 엑셀의 IFS 조건 구간 및 요율 설정
+            if (baseFare <= 1599) return 12;
+            if (baseFare <= 1799) return 14;
+            if (baseFare <= 1999) return 15;
+            if (baseFare <= 2099) return 17;
+            if (baseFare <= 2199) return 18;
+            if (baseFare <= 2399) return 20;
+            if (baseFare <= 2499) return 21;
+            if (baseFare <= 2599) return 23;
+            if (baseFare <= 2749) return 25;
+            if (baseFare <= 2999) return 26;
+            if (baseFare <= 3499) return 27;
+            if (baseFare <= 3999) return 29;
+            if (baseFare <= 4999) return 31;
+            return 33; // 그 외 (5000원 이상, TRUE 조건)
+        }
+
+        function run_calculation() {
+            const fareValue = document.getElementById("calc_fare").value.trim();
+            const fare = parseFloat(fareValue);
+
+            if (isNaN(fare) || fare <= 170) {
+                alert("170원보다 큰 정확한 운임 금액을 입력해주세요.");
+                return;
+            }
+
+            // 정산기준액 = 입력운임 - 170원 (엑셀의 P2 셀 역할)
+            const baseFare = fare - 170;
+            
+            // 정산기준액에 맞는 요율(%) 가져오기
+            const rate = find_rate(baseFare);
+            
+            // 수식 계산: 정산기준액 * 요율%
+            // 엑셀의 ROUNDDOWN(값, 0)을 구현하기 위해 Math.floor()로 소수점 이하는 무조건 버립니다.
+            const finalFee = Math.floor(baseFare * (rate / 100));
+
+            const outRateEl = document.getElementById("out_rate");
+            const outResultEl = document.getElementById("out_result");
+            
+            if (outRateEl) outRateEl.innerText = rate;
+            if (outResultEl) {
+                outResultEl.innerText = finalFee.toLocaleString();
+            }
+        }
+
+        // 페이지 로드 시 버튼 이벤트 바인딩
+        document.addEventListener("DOMContentLoaded", function() {
+            const calcBtn = document.getElementById('calc_btn');
+            if (calcBtn) {
+                calcBtn.addEventListener('click', run_calculation);
+            }
+        });
+    </script>
+</body>
+</html>
