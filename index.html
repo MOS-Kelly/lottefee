@@ -3,33 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>롯데 집하 수수료 계산기</title>
+    <title>롯데 수수료 계산기</title>
     <style>
         /* [CSS 스타일] */
         .calculator-box {
             max-width: 600px;
             margin: 20px auto;
-            padding: 20px;
+            padding: 25px;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 12px;
             background-color: #fff;
             font-family: sans-serif;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* 박스에 살짝 음영을 주어 고급스럽게 변경 */
+        }
+        /* 메인 타이틀 스타일 */
+        .main-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-top: 5px;
+            margin-bottom: 25px;
         }
         .input-group {
             margin-bottom: 15px;
         }
         .input-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
-            color: #333;
+            color: #475569;
         }
         .input-group input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
             box-sizing: border-box;
+            font-size: 16px;
         }
         #calc_btn {
             width: 100%;
@@ -37,53 +48,62 @@
             background-color: #3b82f6;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #calc_btn:hover {
+            background-color: #2563eb; /* 마우스 올렸을 때 살짝 어두워지는 효과 */
         }
         .divider {
-            border-top: 1px solid #eee;
-            margin: 20px 0;
+            border-top: 1px solid #e2e8f0;
+            margin: 25px 0;
         }
         .result-box {
             margin: 20px 0;
-            padding: 15px;
-            border: 1px solid #e5e7eb;
+            padding: 18px;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
-            background-color: #f9fafb;
+            background-color: #f8fafc;
         }
         .total {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-weight: bold;
             font-size: 18px;
         }
         .total-price {
             color: #e11d48;
-            font-size: 20px;
+            font-size: 22px;
         }
         .notice-box {
-            margin: 20px auto;
+            margin: 25px auto 5px auto;
             padding: 15px;
             background-color: #f0fdf4;
             border-left: 4px solid #22c55e;
             border-radius: 4px;
-            font-size: 12px;
-            color: #4b5563;
-            line-height: 1.5;
-            text-align: center;
-            max-width: 90%;
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.6;
+            text-align: left; /* 안내문 가독성을 위해 좌측 정렬로 수정 */
+            max-width: 95%;
+        }
+        .notice-box p {
+            margin: 8px 0;
         }
     </style>
 </head>
 <body>
 
     <div class="calculator-box">
-        <!-- 타입과 급지 선택창을 삭제하고 운임 입력란만 남겼습니다 -->
+        <div class="main-title">📊 롯데 수수료 계산기</div>
+        
         <div class="input-group">
             <label for="calc_fare">운임 입력 (원)</label>
-            <input type="number" id="calc_fare" placeholder="예: 3000">
+            <input type="number" id="calc_fare" placeholder="예: 3500">
         </div>
 
         <button id="calc_btn">계산하기</button>
@@ -94,13 +114,13 @@
             <div style="display: none;"><span id="out_rate">0</span></div>
             
             <div class="result-row total">
-                <span>최종 수수료</span>
+                <span>예상 수수료</span>
                 <span class="total-price"><span id="out_result">0</span> 원</span>
             </div>
         </div>
 
         <div class="notice-box">
-            <p>💡 기타, 도서산간 등 기본운임에 추가 발생한 금액은 한진 측에 전액 귀속되는 금액으로 수수료에 반영되지 않으며, 일반적으로 <strong>총운임 - 사회적합의비용</strong> 기준으로 수수료 발생하여 정산됩니다.</p>
+            <p>💡 기타, 도서산간 등 기본운임에 추가 발생한 금액은 롯데 측에 전액 귀속되는 금액으로 수수료에 반영되지 않으며, 일반적으로 <strong>총운임 - 사회적합의비용</strong> 기준으로 수수료 발생하여 정산됩니다.</p>
             <p>💡 발생하는 변수에 따라서 일부 수수료는 계산한것과 다르게 책정될 수 있습니다. 집하 영업 시 평균 단가 참고하는 용도로만 사용 부탁드리겠습니다.</p>
         </div>
     </div>
@@ -108,7 +128,6 @@
     <script>
         // [자바스크립트 로직]
         function find_rate(baseFare) {
-            // 엑셀의 IFS 조건 구간 및 요율 설정
             if (baseFare <= 1599) return 12;
             if (baseFare <= 1799) return 14;
             if (baseFare <= 1999) return 15;
@@ -122,7 +141,7 @@
             if (baseFare <= 3499) return 27;
             if (baseFare <= 3999) return 29;
             if (baseFare <= 4999) return 31;
-            return 33; // 그 외 (5000원 이상, TRUE 조건)
+            return 33;
         }
 
         function run_calculation() {
@@ -134,14 +153,8 @@
                 return;
             }
 
-            // 정산기준액 = 입력운임 - 170원 (엑셀의 P2 셀 역할)
             const baseFare = fare - 170;
-            
-            // 정산기준액에 맞는 요율(%) 가져오기
             const rate = find_rate(baseFare);
-            
-            // 수식 계산: 정산기준액 * 요율%
-            // 엑셀의 ROUNDDOWN(값, 0)을 구현하기 위해 Math.floor()로 소수점 이하는 무조건 버립니다.
             const finalFee = Math.floor(baseFare * (rate / 100));
 
             const outRateEl = document.getElementById("out_rate");
@@ -153,7 +166,6 @@
             }
         }
 
-        // 페이지 로드 시 버튼 이벤트 바인딩
         document.addEventListener("DOMContentLoaded", function() {
             const calcBtn = document.getElementById('calc_btn');
             if (calcBtn) {
