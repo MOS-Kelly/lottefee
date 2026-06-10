@@ -79,6 +79,19 @@
             color: #e11d48;
             font-size: 22px;
         }
+        
+        /* 📸 추가된 이미지 레이아웃 스타일 */
+        .image-box {
+            margin: 20px auto;
+            text-align: center;
+        }
+        .image-box img {
+            max-width: 100%; /* 박스 크기 넘지 않게 조절 */
+            height: auto;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
         .notice-box {
             margin: 25px auto 5px auto;
             padding: 15px;
@@ -119,8 +132,12 @@
             </div>
         </div>
 
+        <div class="image-box">
+            <img src="lottefee.png" alt="롯데 택배 프로그램 참고 이미지">
+        </div>
+
         <div class="notice-box">
-            <p>💡 기타, 도서산간 등 기본운임에 추가 발생한 금액은 롯데 측에 전액 귀속되는 금액으로 수수료에 반영되지 않으며, 일반적으로 <strong>총운임 - 사회적합의비용</strong> 기준으로 수수료 발생하여 정산됩니다.</p>
+            <p>💡 기타, 도서산간, 다이렉트GO 등 기본운임에 추가 발생한 금액은 롯데 측에 전액 귀속되는 금액으로 수수료에 반영되지 않으며, 일반적으로는 <strong>총운임 - 사회적합의비용(170원)</strong> 기준으로 수수료 발생하여 정산됩니다.</p>
             <p>💡 발생하는 변수에 따라서 일부 수수료는 계산한것과 다르게 책정될 수 있습니다. 집하 영업 시 평균 단가 참고하는 용도로만 사용 부탁드리겠습니다.</p>
         </div>
     </div>
