@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>롯데 집하 수수료 계산기</title>
+    <title>롯데 택배 수수료 계산기</title>
     <style>
         /* [CSS 스타일] */
+        body {
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 10px;
+        }
         .calculator-box {
             max-width: 600px;
             margin: 20px auto;
@@ -14,7 +19,7 @@
             border-radius: 12px;
             background-color: #fff;
             font-family: sans-serif;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* 박스에 살짝 음영을 주어 고급스럽게 변경 */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
         /* 메인 타이틀 스타일 */
         .main-title {
@@ -25,6 +30,38 @@
             margin-top: 5px;
             margin-bottom: 25px;
         }
+        
+        /* 탭 버튼 스타일 (집하/배송 선택) */
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            background-color: #f1f5f9;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        /* 활성화된 탭 스타일 */
+        .tab-btn.active.pickup {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .tab-btn.active.delivery {
+            background-color: #10b981;
+            color: white;
+        }
+
         .input-group {
             margin-bottom: 15px;
         }
@@ -42,10 +79,12 @@
             box-sizing: border-box;
             font-size: 16px;
         }
+        
+        /* 계산하기 버튼 */
         #calc_btn {
             width: 100%;
             padding: 15px;
-            background-color: #3b82f6;
+            background-color: #3b82f6; /* 기본 집하 색상 */
             color: white;
             border: none;
             border-radius: 6px;
@@ -54,9 +93,13 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        #calc_btn:hover {
-            background-color: #2563eb; /* 마우스 올렸을 때 살짝 어두워지는 효과 */
+        #calc_btn.delivery-mode {
+            background-color: #10b981; /* 배송 색상 */
         }
+        #calc_btn:hover {
+            opacity: 0.9;
+        }
+
         .divider {
             border-top: 1px solid #e2e8f0;
             margin: 25px 0;
@@ -80,13 +123,13 @@
             font-size: 22px;
         }
         
-        /* 📸 추가된 이미지 레이아웃 스타일 */
+        /* 이미지 레이아웃 스타일 */
         .image-box {
             margin: 20px auto;
             text-align: center;
         }
         .image-box img {
-            max-width: 100%; /* 박스 크기 넘지 않게 조절 */
+            max-width: 100%;
             height: auto;
             border-radius: 6px;
             border: 1px solid #e2e8f0;
@@ -101,7 +144,7 @@
             font-size: 13px;
             color: #475569;
             line-height: 1.6;
-            text-align: left; /* 안내문 가독성을 위해 좌측 정렬로 수정 */
+            text-align: left;
             max-width: 95%;
         }
         .notice-box p {
@@ -112,22 +155,25 @@
 <body>
 
     <div class="calculator-box">
-        <div class="main-title">📦 롯데 집하 수수료 계산기</div>
+        <div class="main-title">🚚 롯데 택배 수수료 계산기</div>
         
+        <div class="tab-container">
+            <button id="tab_pickup" class="tab-btn active pickup" onclick="switchMode('pickup')">📦 집하 계산</button>
+            <button id="tab_delivery" class="tab-btn delivery" onclick="switchMode('delivery')">🚛 배송 계산</button>
+        </div>
+
         <div class="input-group">
-            <label for="calc_fare">운임 입력 (원)</label>
+            <label id="input_label" for="calc_fare">집하 운임 입력 (원)</label>
             <input type="number" id="calc_fare" placeholder="예: 3500">
         </div>
 
-        <button id="calc_btn">계산하기</button>
+        <button id="calc_btn" onclick="run_calculation()">계산하기</button>
 
         <div class="divider"></div>
 
         <div class="result-box">
-            <div style="display: none;"><span id="out_rate">0</span></div>
-            
             <div class="result-row total">
-                <span>예상 수수료</span>
+                <span id="result_label">예상 집하 수수료</span>
                 <span class="total-price"><span id="out_result">0</span> 원</span>
             </div>
         </div>
@@ -137,14 +183,52 @@
         </div>
 
         <div class="notice-box">
-            <p>💡 기타, 도서산간, 다이렉트GO 등 기본운임에 추가 발생한 금액은 롯데 측에 전액 귀속되는 금액으로 수수료에 반영되지 않으며, 일반적으로는 <strong>총운임 - 사회적합의비용(170원)</strong> 기준으로 수수료 발생하여 정산됩니다.</p>
-            <p>💡 발생하는 변수에 따라서 일부 수수료는 계산한것과 다르게 책정될 수 있습니다. 집하 영업 시 평균 단가 참고하는 용도로만 사용 부탁드리겠습니다.</p>
+            <p>💡 일반적으로는 <strong>총운임 - 사회적합의비용(170원)</strong> 기준으로 금액별 수수료 발생하여 정산되나, 위 사진처럼 사회적합의비용 제외 다른 항목에서 기타비용이 추가 발생할 경우 예상 수수료보다 낮은 수수료가 책정될 수 있습니다.</p>
+            <p id="notice_delivery_tip" style="display: none;">💡 배송 수수료는 입력된 운임에서 170원을 차감한 기준금액으로 구간별 단가를 산출한 후, <strong>최종 90%(0.9)</strong>를 곱하여 계산(원단위 절사)됩니다.</p>
+            <p>💡 집하 및 배송 영업 시 평균 단가 참고하는 용도로만 사용 부탁드리겠습니다.</p>
         </div>
     </div>
 
     <script>
-        // [자바스크립트 로직]
-        function find_rate(baseFare) {
+        // 현재 모드 상태 저장 ('pickup' 또는 'delivery')
+        let currentMode = 'pickup';
+
+        // 탭 전환 함수
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            const tabPickup = document.getElementById('tab_pickup');
+            const tabDelivery = document.getElementById('tab_delivery');
+            const inputLabel = document.getElementById('input_label');
+            const resultLabel = document.getElementById('result_label');
+            const calcBtn = document.getElementById('calc_btn');
+            const deliveryTip = document.getElementById('notice_delivery_tip');
+            
+            // 결과값 초기화
+            document.getElementById('out_result').innerText = '0';
+            document.getElementById('calc_fare').value = '';
+
+            if (mode === 'pickup') {
+                tabPickup.classList.add('active', 'pickup');
+                tabDelivery.classList.remove('active', 'delivery');
+                inputLabel.innerText = '집하 운임 입력 (원)';
+                resultLabel.innerText = '예상 집하 수수료';
+                calcBtn.innerText = '계산하기';
+                calcBtn.classList.remove('delivery-mode');
+                deliveryTip.style.display = 'none';
+            } else {
+                tabPickup.classList.remove('active', 'pickup');
+                tabDelivery.classList.add('active', 'delivery');
+                inputLabel.innerText = '배송 운임 입력 (원)';
+                resultLabel.innerText = '예상 배송 수수료 (단가 * 90%)';
+                calcBtn.innerText = '계산하기';
+                calcBtn.classList.add('delivery-mode');
+                deliveryTip.style.display = 'block';
+            }
+        }
+
+        // [1. 집하 수수료 구간 요율 데이터]
+        function find_pickup_rate(baseFare) {
             if (baseFare <= 1599) return 12;
             if (baseFare <= 1799) return 14;
             if (baseFare <= 1999) return 15;
@@ -161,6 +245,47 @@
             return 33;
         }
 
+        // [2. 배송 수수료 구간 단가 데이터]
+        function find_delivery_unit_price(baseFare) {
+            if (baseFare <= 1599) return 870;
+            if (baseFare <= 1799) return 875;
+            if (baseFare <= 1999) return 885;
+            if (baseFare <= 2199) return 895;
+            if (baseFare <= 2399) return 905;
+            if (baseFare <= 2599) return 915;
+            if (baseFare <= 2799) return 925;
+            if (baseFare <= 2999) return 935;
+            if (baseFare <= 3199) return 935;
+            if (baseFare <= 3299) return 965;
+            if (baseFare <= 3399) return 985;
+            if (baseFare <= 3499) return 1015;
+            if (baseFare <= 3599) return 1035;
+            if (baseFare <= 3699) return 1055;
+            if (baseFare <= 3799) return 1095;
+            if (baseFare <= 3899) return 1115;
+            if (baseFare <= 4099) return 1135;
+            if (baseFare <= 4199) return 1155;
+            if (baseFare <= 4299) return 1185;
+            if (baseFare <= 4399) return 1215;
+            if (baseFare <= 4499) return 1245;
+            if (baseFare <= 4599) return 1275;
+            if (baseFare <= 4699) return 1305;
+            if (baseFare <= 4799) return 1325;
+            if (baseFare <= 4899) return 1355;
+            if (baseFare <= 4999) return 1385;
+            if (baseFare <= 5499) return 1445;
+            if (baseFare <= 5999) return 1475;
+            if (baseFare <= 6499) return 1515;
+            if (baseFare <= 6999) return 1555;
+            if (baseFare <= 7499) return 1655;
+            if (baseFare <= 7999) return 1755;
+            if (baseFare <= 8499) return 1855;
+            if (baseFare <= 8999) return 1915;
+            if (baseFare <= 9999) return 2065;
+            return 2165;
+        }
+
+        // 메인 통합 계산 함수
         function run_calculation() {
             const fareValue = document.getElementById("calc_fare").value.trim();
             const fare = parseFloat(fareValue);
@@ -170,25 +295,22 @@
                 return;
             }
 
-            const baseFare = fare - 170;
-            const rate = find_rate(baseFare);
-            const finalFee = Math.floor(baseFare * (rate / 100));
+            const baseFare = fare - 170; // P8 기준 (운임 - 170)
+            let finalFee = 0;
 
-            const outRateEl = document.getElementById("out_rate");
-            const outResultEl = document.getElementById("out_result");
-            
-            if (outRateEl) outRateEl.innerText = rate;
-            if (outResultEl) {
-                outResultEl.innerText = finalFee.toLocaleString();
+            if (currentMode === 'pickup') {
+                // 집하 계산 모드
+                const rate = find_pickup_rate(baseFare);
+                finalFee = Math.floor(baseFare * (rate / 100));
+            } else {
+                // 배송 계산 모드
+                const unitPrice = find_delivery_unit_price(baseFare);
+                finalFee = Math.floor(unitPrice * 0.9);
             }
+
+            // 결과 화면에 출력
+            document.getElementById("out_result").innerText = finalFee.toLocaleString();
         }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const calcBtn = document.getElementById('calc_btn');
-            if (calcBtn) {
-                calcBtn.addEventListener('click', run_calculation);
-            }
-        });
     </script>
 </body>
 </html>
